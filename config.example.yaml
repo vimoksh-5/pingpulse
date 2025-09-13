@@ -1,0 +1,180 @@
+# Enhanced PingPulse Configuration
+# This demonstrates all the features available
+
+default:
+  interval: 60s # default ping interval
+  timeout: 5s # default HTTP timeout
+  maxRetries: 3 # default number of retries
+  jitter: 5s # optional jitter added to intervals
+  userAgent: "PingPulse/1.0"
+
+# Global alerting configuration
+global_alerts:
+  email:
+    smtp_host: "smtp.host.com"
+    smtp_port: 587
+    username: "${SMTP_USERNAME}"
+    password: "${SMTP_PASSWORD}"
+    from: "alerts@company.com"
+    use_tls: true
+  slack:
+    webhook_url: "${SLACK_WEBHOOK_URL}"
+    channel: "#alerts"
+    username: "PingPulse"
+  webhook:
+    url: "${GLOBAL_WEBHOOK_URL}"
+    headers:
+      Authorization: "Bearer ${WEBHOOK_TOKEN}"
+
+projects:
+  - name: "Production APIs"
+    apiKey: "prod_abc123"
+    monitors:
+      # Basic API monitoring
+      - name: "User Service Health"
+        url: "https://api.company.com/users/health"
+        interval: 30s
+        timeout: 10s
+        maxRetries: 2
+        method: "GET"
+        expected_status: 200
+        expected_latency: 2s
+        ssl_verify: true
+        follow_redirects: true
+        body_validation:
+          path: "$.status"
+          expected: "healthy"
+        alerts:
+          - name: "User Service Down"
+            condition: "status != 200"
+            channels: ["email", "slack"]
+            recipients: ["ops@company.com", "dev-team@company.com"]
+            cooldown: 5m
+          - name: "User Service Slow"
+            condition: "latency > 2s"
+            channels: ["slack"]
+            cooldown: 10m
+
+      # API with Bearer Token Authentication
+      - name: "Payment API"
+        url: "https://api.company.com/payments/status"
+        interval: 15s
+        timeout: 5s
+        method: "GET"
+        auth:
+          type: "bearer"
+          token: "${PAYMENT_API_TOKEN}"
+        expected_status: 200
+        alerts:
+          - name: "Payment API Down"
+            condition: "status != 200"
+            channels: ["email", "webhook"]
+            recipients: ["finance@company.com"]
+            webhook_url: "${PAYMENT_ALERT_WEBHOOK}"
+
+      # API with Basic Authentication
+      - name: "Internal Service"
+        url: "https://internal.company.com/api/status"
+        interval: 60s
+        auth:
+          type: "basic"
+          username: "${INTERNAL_USERNAME}"
+          password: "${INTERNAL_PASSWORD}"
+        expected_status: 200
+
+      # API with API Key Authentication
+      - name: "Third Party Service"
+        url: "https://api.thirdparty.com/v1/status"
+        interval: 120s
+        auth:
+          type: "apikey"
+          api_key: "${THIRD_PARTY_API_KEY}"
+          api_key_header: "X-API-Key"
+        expected_status: 200
+
+      # POST API with JSON body
+      - name: "Data Processing API"
+        url: "https://api.company.com/process"
+        interval: 300s
+        method: "POST"
+        body: { "action": "health_check", "timestamp": "{{.Now}}" }
+        headers:
+          Content-Type: "application/json"
+          X-Request-ID: "{{.UUID}}"
+        auth:
+          type: "bearer"
+          token: "${DATA_API_TOKEN}"
+        expected_status: 201
+        expected_latency: 5s
+
+  - name: "External Services"
+    apiKey: "ext_xyz789"
+    monitors:
+      # OAuth2 API (simplified - in production you'd implement token refresh)
+      - name: "OAuth2 Protected API"
+        url: "https://api.external.com/v1/data"
+        interval: 180s
+        auth:
+          type: "oauth2"
+          client_id: "${OAUTH_CLIENT_ID}"
+          client_secret: "${OAUTH_CLIENT_SECRET}"
+          token_url: "https://auth.external.com/oauth/token"
+          token: "${OAUTH_ACCESS_TOKEN}" # In production, this would be refreshed automatically
+        expected_status: 200
+
+      # API with custom headers and validation
+      - name: "Complex API"
+        url: "https://api.complex.com/health"
+        interval: 45s
+        method: "GET"
+        headers:
+          Accept: "application/json"
+          X-Client-Version: "1.0"
+          X-Request-Source: "pingpulse"
+        expected_status: 200
+        expected_latency: 3s
+        body_validation:
+          path: "$.healthy"
+          expected: true
+        alerts:
+          - name: "Complex API Issues"
+            condition: "status != 200 OR latency > 3s"
+            channels: ["email", "slack", "webhook"]
+            recipients: ["alerts@company.com"]
+            cooldown: 15m
+
+      # High-frequency monitoring
+      - name: "Critical Service"
+        url: "https://critical.company.com/ping"
+        interval: 10s
+        timeout: 3s
+        maxRetries: 1
+        expected_status: 200
+        expected_latency: 500ms
+        alerts:
+          - name: "Critical Service Down"
+            condition: "status != 200"
+            channels: ["email", "slack", "webhook"]
+            recipients: ["oncall@company.com", "cto@company.com"]
+            cooldown: 1m
+          - name: "Critical Service Slow"
+            condition: "latency > 500ms"
+            channels: ["slack"]
+            cooldown: 5m
+
+  - name: "Development APIs"
+    apiKey: "dev_123456"
+    monitors:
+      # Development API with relaxed settings
+      - name: "Dev API"
+        url: "http://localhost:3000/health"
+        interval: 120s
+        timeout: 10s
+        maxRetries: 5
+        ssl_verify: false
+        expected_status: 200
+        alerts:
+          - name: "Dev API Down"
+            condition: "status != 200"
+            channels: ["slack"]
+            cooldown: 30m
