@@ -1,0 +1,20 @@
+repos:
+  # - repo: https://github.com/gitleaks/gitleaks
+  #   rev: v8.18.4 # 🔧 latest stable tag preferred
+  #   hooks:
+  #     - id: gitleaks
+  #       args: ["protect", "--staged", "--redact", "-c", ".gitleaks.toml"]
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-merge-conflict
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+
+Add language-specific linters if you want (example for Go):
+  - repo: https://github.com/dnephin/pre-commit-golang
+    rev: v1.5.0
+    hooks:
+      - id: go-vet
+      - id: go-fmt

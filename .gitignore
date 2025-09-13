@@ -1,2 +1,12 @@
-.env
+# secrets & local junk
 config.yaml
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.crt
+*.keystore
+*.jks
+*.pfx
+*.DS_Store

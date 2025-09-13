@@ -1,0 +1,57 @@
+title = "Go repo secrets & PII (Gitleaks v8)"
+
+# ---- Custom detection rules ----
+
+[[rules]]
+id = "vb-personal-email"
+description = "Personal email exposure"
+# 🔧 put YOUR emails here so any appearance is flagged
+regex = '''\b(YOUR_EMAIL_1|YOUR_EMAIL_2|YOUR_WORK_EMAIL)\b'''
+tags  = ["pii","email"]
+
+[[rules]]
+id = "any-email"
+description = "Any email-like string"
+regex = '''[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}'''
+tags  = ["pii","email"]
+
+[[rules]]
+id = "dotenv"
+description = ".env style assignments"
+regex = '''(?m)^\s*[A-Z0-9_]{3,}=(.+)$'''
+tags  = ["secret","config"]
+
+[[rules]]
+id = "generic-api-key"
+description = "Generic API key/token"
+regex = '''(?i)(api[_-]?key|secret|token|access[_-]?key|aws[_-]secret|bearer)\s*[:=]\s*['"]?[A-Za-z0-9_\-\/\.\+=]{16,}['"]?'''
+tags  = ["secret"]
+
+[[rules]]
+id = "aws-access-key"
+description = "AWS Access Key ID"
+regex = '''AKIA[0-9A-Z]{16}'''
+tags  = ["secret","aws"]
+
+[[rules]]
+id = "aws-secret"
+description = "AWS Secret Access Key"
+regex = '''(?i)aws(.{0,20})?(secret|access)[^A-Za-z0-9]{0,3}['"]?([A-Za-z0-9/+=]{40})['"]?'''
+tags  = ["secret","aws"]
+
+[[rules]]
+id = "phone-india"
+description = "Likely Indian phone"
+regex = '''(?i)(\+?91[\s-]?)?[6-9]\d{9}'''
+tags  = ["pii","phone"]
+
+# ---- Allowlist (v8 requires at least one of: paths | regexes | commits | stopwords) ----
+
+[[allowlists]]
+description = "Ignore common lockfiles and binaries"
+paths = [
+  '''go\.sum$''',
+  '''package-lock\.json$''', '''pnpm-lock\.yaml$''', '''yarn\.lock$''',
+  '''Pipfile\.lock$''', '''poetry\.lock$''',
+  '''\.(png|jpg|jpeg|gif|pdf|svg|ico|woff2?)$'''
+]
