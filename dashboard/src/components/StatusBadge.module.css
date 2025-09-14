@@ -1,0 +1,82 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-weight: 500;
+  border-radius: 9999px;
+  border: 1px solid;
+}
+
+.small {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+.medium {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+.large {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+}
+
+.dot {
+  border-radius: 50%;
+}
+
+.dotSmall {
+  width: 0.5rem;
+  height: 0.5rem;
+}
+
+.dotMedium {
+  width: 0.625rem;
+  height: 0.625rem;
+}
+
+.dotLarge {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.healthy {
+  color: var(--color-success-600);
+  background-color: var(--color-success-50);
+  border-color: var(--color-success-200);
+}
+
+.warning {
+  color: var(--color-warning-600);
+  background-color: var(--color-warning-50);
+  border-color: var(--color-warning-200);
+}
+
+.critical {
+  color: var(--color-error-600);
+  background-color: var(--color-error-50);
+  border-color: var(--color-error-200);
+}
+
+.unknown {
+  color: var(--color-gray-600);
+  background-color: var(--color-gray-50);
+  border-color: var(--color-gray-200);
+}
+
+.dotHealthy {
+  background-color: var(--color-success-500);
+}
+
+.dotWarning {
+  background-color: var(--color-warning-500);
+}
+
+.dotCritical {
+  background-color: var(--color-error-500);
+}
+
+.dotUnknown {
+  background-color: var(--color-gray-500);
+}
