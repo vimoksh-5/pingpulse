@@ -4,9 +4,9 @@
 default:
   interval: 60s # default ping interval
   timeout: 5s # default HTTP timeout
-  maxRetries: 3 # default number of retries
+  max_retries: 3 # default number of retries
   jitter: 5s # optional jitter added to intervals
-  userAgent: "PingPulse/1.0"
+  user_agent: "PingPulse/1.0"
 
 # Global alerting configuration
 global_alerts:
@@ -28,14 +28,14 @@ global_alerts:
 
 projects:
   - name: "Production APIs"
-    apiKey: "prod_abc123"
+    api_key: "prod_abc123"
     monitors:
       # Basic API monitoring
       - name: "User Service Health"
         url: "https://api.company.com/users/health"
         interval: 30s
         timeout: 10s
-        maxRetries: 2
+        max_retries: 2
         method: "GET"
         expected_status: 200
         expected_latency: 2s
@@ -46,7 +46,7 @@ projects:
           expected: "healthy"
         alerts:
           - name: "User Service Down"
-            condition: "status != 200"
+            condition: "status != 200 OR ok == false"
             channels: ["email", "slack"]
             recipients: ["ops@company.com", "dev-team@company.com"]
             cooldown: 5m
@@ -54,6 +54,11 @@ projects:
             condition: "latency > 2s"
             channels: ["slack"]
             cooldown: 10m
+          - name: "User Service Critical"
+            condition: "status >= 500 AND latency > 5s"
+            channels: ["email", "slack"]
+            recipients: ["oncall@company.com"]
+            cooldown: 1m
 
       # API with Bearer Token Authentication
       - name: "Payment API"
@@ -71,6 +76,15 @@ projects:
             channels: ["email", "webhook"]
             recipients: ["finance@company.com"]
             webhook_url: "${PAYMENT_ALERT_WEBHOOK}"
+          - name: "Payment API Client Error"
+            condition: "status >= 400 AND status < 500"
+            channels: ["slack"]
+            cooldown: 15m
+          - name: "Payment API Server Error"
+            condition: "status >= 500"
+            channels: ["email", "slack"]
+            recipients: ["finance@company.com", "ops@company.com"]
+            cooldown: 5m
 
       # API with Basic Authentication
       - name: "Internal Service"
@@ -108,7 +122,7 @@ projects:
         expected_latency: 5s
 
   - name: "External Services"
-    apiKey: "ext_xyz789"
+    api_key: "ext_xyz789"
     monitors:
       # OAuth2 API (simplified - in production you'd implement token refresh)
       - name: "OAuth2 Protected API"
@@ -142,13 +156,22 @@ projects:
             channels: ["email", "slack", "webhook"]
             recipients: ["alerts@company.com"]
             cooldown: 15m
+          - name: "Complex API Performance"
+            condition: "latency > 1s AND latency <= 3s"
+            channels: ["slack"]
+            cooldown: 30m
+          - name: "Complex API Unauthorized"
+            condition: "status == 401 OR status == 403"
+            channels: ["email"]
+            recipients: ["security@company.com"]
+            cooldown: 10m
 
       # High-frequency monitoring
       - name: "Critical Service"
         url: "https://critical.company.com/ping"
         interval: 10s
         timeout: 3s
-        maxRetries: 1
+        max_retries: 1
         expected_status: 200
         expected_latency: 500ms
         alerts:
@@ -163,14 +186,14 @@ projects:
             cooldown: 5m
 
   - name: "Development APIs"
-    apiKey: "dev_123456"
+    api_key: "dev_123456"
     monitors:
       # Development API with relaxed settings
       - name: "Dev API"
         url: "http://localhost:3000/health"
         interval: 120s
         timeout: 10s
-        maxRetries: 5
+        max_retries: 5
         ssl_verify: false
         expected_status: 200
         alerts:
