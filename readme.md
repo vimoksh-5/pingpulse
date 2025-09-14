@@ -2,7 +2,8 @@
 
 A lightweight monitoring solution that continuously checks your APIs and services, sending alerts when things go wrong. Built with Go backend and React TypeScript dashboard.
 
-<img width="1428" height="942" alt="PingPulse Dashboard" src="https://github.com/user-attachments/assets/85df21be-f099-4328-9eb8-2cf88ca7fc4c" />
+<img width="1105" height="891" alt="image" src="https://github.com/user-attachments/assets/bfe37a32-ab30-46e2-9ffb-e83105229c10" />
+
 
 ## ✨ Key Features
 
