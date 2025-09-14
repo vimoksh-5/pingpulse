@@ -4,21 +4,20 @@ import (
 	"sort"
 	"strings"
 	"sync"
-	"time"
 
 	"pingpulse/internal/monitor"
 )
 
 // QueryFilter represents filters for querying results
 type QueryFilter struct {
-	Project     string    // Filter by project name
-	MonitorName string    // Filter by monitor name
-	URL         string    // Filter by URL
-	Status      *int      // Filter by HTTP status code
-	OK          *bool     // Filter by OK status
-	Since       time.Time // Filter results after this time
-	Until       time.Time // Filter results before this time
-	Limit       int       // Limit number of results
+	Project     string `json:"project"`
+	MonitorName string `json:"monitor_name"`
+	URL         string `json:"url"`
+	Status      *int   `json:"status"`
+	OK          *bool  `json:"ok"`
+	Since       *int64 `json:"since"`  // Epoch timestamp in seconds
+	Until       *int64 `json:"until"`  // Epoch timestamp in seconds
+	Limit       int    `json:"limit"`
 }
 
 type MemoryStore struct {
@@ -138,9 +137,9 @@ func (s *MemoryStore) Query(filter QueryFilter) []monitor.Result {
 		}
 	}
 	
-	// Sort results by timestamp (newest first)
+	// Sort results by config order to preserve config.yaml order
 	sort.Slice(results, func(i, j int) bool {
-		return results[i].CheckedAt.After(results[j].CheckedAt)
+		return results[i].ConfigOrder < results[j].ConfigOrder
 	})
 	
 	// Apply limit if specified
@@ -179,11 +178,11 @@ func (s *MemoryStore) matchesFilter(result monitor.Result, filter QueryFilter) b
 	}
 	
 	// Time range filters
-	if !filter.Since.IsZero() && result.CheckedAt.Before(filter.Since) {
+	if filter.Since != nil && int64(result.CheckedAt) < *filter.Since {
 		return false
 	}
 	
-	if !filter.Until.IsZero() && result.CheckedAt.After(filter.Until) {
+	if filter.Until != nil && int64(result.CheckedAt) > *filter.Until {
 		return false
 	}
 	

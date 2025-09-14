@@ -39,8 +39,10 @@ func main() {
 	mgr.SetAlertManager(alertMgr)
 
 	// Loop over projects and their monitors
+	configOrder := 0
 	for _, proj := range cfg.Projects {
 		for _, mon := range proj.Monitors {
+			configOrder++
 			// Merge monitor settings with defaults
 			interval := cfg.Default.Interval.Duration
 			if mon.Interval != nil {
@@ -114,6 +116,7 @@ func main() {
 				FollowRedirects: mon.FollowRedirects,
 				BodyValidation:  bodyValidation,
 				Alerts:          alerts,
+				ConfigOrder:     configOrder,
 			}
 			mgr.Start(ctx, target)
 		}
