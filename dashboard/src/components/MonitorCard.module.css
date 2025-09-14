@@ -29,8 +29,14 @@
 .header {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  justify-content: space-between;
   margin-bottom: var(--spacing-sm);
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .title {
@@ -54,8 +60,8 @@
 
 .url {
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: auto;
+  scrollbar-width: none;
   margin-bottom: 0.75rem;
 }
 
@@ -93,4 +99,36 @@
 
 .statusNeutral {
   color: var(--color-gray-900);
+}
+
+.uptimeToggle {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-sm);
+  transition: background-color var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.uptimeToggle:hover {
+  background-color: var(--color-gray-100);
+}
+
+.uptimeSection {
+  margin-top: var(--spacing-lg);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-gray-200);
+}
+
+.uptimeLoading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  color: var(--color-gray-500);
+  font-size: 0.875rem;
 }

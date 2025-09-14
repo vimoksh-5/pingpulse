@@ -39,8 +39,8 @@ type Alert struct {
 }
 
 type Target struct {
-	Project         string // which project this monitor belongs to
-	Name            string // a friendly name for the monitor
+	Project         string            // which project this monitor belongs to
+	Name            string            // a friendly name for the monitor
 	URL             string
 	Every           time.Duration     // interval between probes
 	Timeout         time.Duration     // HTTP timeout per attempt
@@ -55,17 +55,27 @@ type Target struct {
 	FollowRedirects *bool             // whether to follow redirects
 	BodyValidation  *BodyValidation   // response body validation
 	Alerts          []Alert           // alerting configuration
+	ConfigOrder     int               // Order from config.yaml for consistent sorting
+}
+
+// EpochTime represents Unix timestamp that marshals as integer
+type EpochTime int64
+
+// MarshalJSON ensures EpochTime is serialized as integer
+func (e EpochTime) MarshalJSON() ([]byte, error) {
+	return json.Marshal(int64(e))
 }
 
 type Result struct {
-	Project   string        `json:"project"`
-	Name      string        `json:"name"`
-	URL       string        `json:"url"`
-	OK        bool          `json:"ok"`
-	Status    int           `json:"status"`
-	Latency   time.Duration `json:"latency"`
-	Error     string        `json:"error,omitempty"`
-	CheckedAt time.Time     `json:"checked_at"`
+	Project     string        `json:"project"`
+	Name        string        `json:"name"`
+	URL         string        `json:"url"`
+	OK          bool          `json:"ok"`
+	Status      int           `json:"status"`
+	Latency     time.Duration `json:"latency"`
+	Error       string        `json:"error,omitempty"`
+	CheckedAt   EpochTime     `json:"checked_at"`   // Unix timestamp in seconds
+	ConfigOrder int           `json:"config_order"` // Order from config.yaml
 }
 
 type ResultSink interface {
@@ -210,11 +220,12 @@ func (m *Manager) checkOnce(ctx context.Context, t Target) {
 		res, err := m.http.Do(req)
 		cancel()
 		r := Result{
-			Project:   t.Project,
-			Name:      t.Name,
-			URL:       t.URL,
-			CheckedAt: time.Now(),
-			Latency:   time.Since(start),
+			Project:     t.Project,
+			Name:        t.Name,
+			URL:         t.URL,
+			CheckedAt:   EpochTime(time.Now().Unix()),
+			Latency:     time.Since(start),
+			ConfigOrder: t.ConfigOrder,
 		}
 
 		if err != nil {

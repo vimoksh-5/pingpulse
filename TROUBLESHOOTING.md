@@ -331,7 +331,7 @@ sudo journalctl -u pingpulse -f
 sudo journalctl -u pingpulse | grep -i error
 
 # Check specific time range
-sudo journalctl -u pingpulse --since "2024-01-01 10:00:00" --until "2024-01-01 11:00:00"
+sudo journalctl -u pingpulse --since "1757851000" --until "1757851919"
 ```
 
 ## 🔍 Network Diagnostics

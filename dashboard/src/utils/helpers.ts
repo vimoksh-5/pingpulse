@@ -47,10 +47,13 @@ export const formatDuration = (ms: number): string => {
   return `${(ms / 3600000).toFixed(1)}h`;
 };
 
-// Format timestamp to relative time
-export const formatRelativeTime = (timestamp: string): string => {
+// Format timestamp to relative time (epoch timestamps only)
+export const formatRelativeTime = (timestamp: string | number): string => {
   const now = new Date();
-  const time = new Date(timestamp);
+  const time =
+    typeof timestamp === "number"
+      ? new Date(timestamp * 1000) // Convert epoch seconds to milliseconds
+      : new Date(timestamp); // For backward compatibility with string ISO dates
   const diff = now.getTime() - time.getTime();
 
   const seconds = Math.floor(diff / 1000);
@@ -64,9 +67,13 @@ export const formatRelativeTime = (timestamp: string): string => {
   return `${days}d ago`;
 };
 
-// Format timestamp to local time
-export const formatLocalTime = (timestamp: string): string => {
-  return new Date(timestamp).toLocaleString();
+// Format timestamp to local time (epoch timestamps only)
+export const formatLocalTime = (timestamp: string | number): string => {
+  const date =
+    typeof timestamp === "number"
+      ? new Date(timestamp * 1000) // Convert epoch seconds to milliseconds
+      : new Date(timestamp); // For backward compatibility with string ISO dates
+  return date.toLocaleString();
 };
 
 // Determine monitor status based on result
@@ -154,21 +161,22 @@ export const debounce = <T extends (...args: any[]) => any>(
   };
 };
 
-// Sort results by timestamp (newest first)
+// Sort results by timestamp (newest first) - epoch timestamps only
 export const sortResultsByTime = (
   results: MonitorResult[]
 ): MonitorResult[] => {
-  return [...results].sort(
-    (a, b) =>
-      new Date(b.checked_at).getTime() - new Date(a.checked_at).getTime()
-  );
+  return [...results].sort((a, b) => {
+    return b.checked_at - a.checked_at; // Both are epoch seconds, newest first
+  });
 };
 
-// Filter results by time range
+// Filter results by time range - epoch timestamps only
 export const filterResultsByTimeRange = (
   results: MonitorResult[],
   hours: number
 ): MonitorResult[] => {
-  const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
-  return results.filter((result) => new Date(result.checked_at) >= cutoff);
+  const cutoffEpoch = Math.floor(Date.now() / 1000) - hours * 60 * 60;
+  return results.filter((result) => {
+    return result.checked_at >= cutoffEpoch; // Both are epoch seconds
+  });
 };

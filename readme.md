@@ -65,7 +65,21 @@ Each monitor shows:
 - Response latency with performance indicators
 - Uptime percentage
 - Last check timestamp
-- Service URL
+- **📊 Uptime Graph**: Interactive 30-day uptime visualization (click the chart icon)
+
+### **Uptime Status Graph** 📈
+
+Similar to Atlassian Status and other monitoring services, each monitor now includes:
+
+- **Visual Timeline**: 30-day uptime history displayed as colored segments
+- **Status Colors**:
+  - 🟢 Green: All checks passed (100% uptime)
+  - 🟡 Yellow: Partial outages (degraded performance)
+  - 🔴 Red: Complete outages (all checks failed)
+  - ⚫ Gray: No data available
+- **Interactive Tooltips**: Hover over any segment to see detailed status information
+- **Real-time Updates**: Historical data fetched from the backend API
+- **Responsive Design**: Optimized for both desktop and mobile viewing
 
 ### **Status System**
 

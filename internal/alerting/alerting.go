@@ -96,7 +96,7 @@ func (am *AlertManager) sendSlackAlert(result monitor.Result, alert monitor.Aler
 					{"title": "URL", "value": result.URL, "short": false},
 					{"title": "Status", "value": fmt.Sprintf("%d", result.Status), "short": true},
 					{"title": "Latency", "value": result.Latency.String(), "short": true},
-					{"title": "Time", "value": result.CheckedAt.Format("2006-01-02 15:04:05"), "short": true},
+					{"title": "Time", "value": time.Unix(int64(result.CheckedAt), 0).Format("2006-01-02 15:04:05"), "short": true},
 				},
 			},
 		},
@@ -136,7 +136,7 @@ func (am *AlertManager) sendWebhookAlert(result monitor.Result, alert monitor.Al
 		"ok":      result.OK,
 		"latency": result.Latency.String(),
 		"error":   result.Error,
-		"time":    result.CheckedAt.Format(time.RFC3339),
+		"time":    time.Unix(int64(result.CheckedAt), 0).Format(time.RFC3339),
 	}
 
 	jsonData, _ := json.Marshal(payload)
@@ -186,7 +186,7 @@ Automated alert from PingPulse monitoring.`,
 		status,
 		result.Status,
 		result.Latency.String(),
-		result.CheckedAt.Format("2006-01-02 15:04:05"),
+		time.Unix(int64(result.CheckedAt), 0).Format("2006-01-02 15:04:05"),
 		result.Error)
 }
 

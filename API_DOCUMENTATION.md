@@ -102,16 +102,16 @@ Query monitoring results with advanced filtering capabilities.
 
 **Query Parameters:**
 
-| Parameter | Type    | Description                | Example                   |
-| --------- | ------- | -------------------------- | ------------------------- |
-| `project` | string  | Filter by project name     | `Production APIs`         |
-| `monitor` | string  | Filter by monitor name     | `User Service Health`     |
-| `url`     | string  | Filter by specific URL     | `https://api.example.com` |
-| `status`  | int     | Filter by HTTP status code | `200`, `404`, `500`       |
-| `ok`      | bool    | Filter by success status   | `true`, `false`           |
-| `since`   | RFC3339 | Results after timestamp    | `2024-01-01T10:00:00Z`    |
-| `until`   | RFC3339 | Results before timestamp   | `2024-01-01T11:00:00Z`    |
-| `limit`   | int     | Maximum results to return  | `50`, `100`               |
+| Parameter | Type   | Description                | Example                      |
+| --------- | ------ | -------------------------- | ---------------------------- |
+| `project` | string | Filter by project name     | `Production APIs`            |
+| `monitor` | string | Filter by monitor name     | `User Service Health`        |
+| `url`     | string | Filter by specific URL     | `https://api.example.com`    |
+| `status`  | int    | Filter by HTTP status code | `200`, `404`, `500`          |
+| `ok`      | bool   | Filter by success status   | `true`, `false`              |
+| `since`   | string | Results after timestamp    | `1757849600` (epoch seconds) |
+| `until`   | string | Results before timestamp   | `1757849700` (epoch seconds) |
+| `limit`   | int    | Maximum results to return  | `50`, `100`                  |
 
 **Usage Examples:**
 
@@ -131,11 +131,11 @@ curl "http://localhost:8080/api/v1/results?status=500"
 # Get results for specific monitor
 curl "http://localhost:8080/api/v1/results?monitor=User%20Service%20Health"
 
-# Time-based filtering
-curl "http://localhost:8080/api/v1/results?since=2024-01-01T10:00:00Z&limit=50"
+# Time-based filtering (epoch timestamp)
+curl "http://localhost:8080/api/v1/results?since=1757849600&limit=50"
 
-# Complex filtering
-curl "http://localhost:8080/api/v1/results?project=Production%20APIs&ok=false&since=2024-01-01T09:00:00Z&until=2024-01-01T10:00:00Z&limit=100"
+# Complex filtering with time range
+curl "http://localhost:8080/api/v1/results?project=Production%20APIs&ok=false&since=1757849600&until=1757850000&limit=100"
 ```
 
 **Response Format:**
@@ -151,7 +151,7 @@ curl "http://localhost:8080/api/v1/results?project=Production%20APIs&ok=false&si
         "ok": true,
         "status": 200,
         "latency": "150ms",
-        "checked_at": "2024-01-01T10:30:00Z"
+        "checked_at": "1757851919"
       }
     ],
     "count": 1,
@@ -285,6 +285,70 @@ curl "http://localhost:8080/api/v1/statistics"
   "status_message": "Statistics retrieved successfully"
 }
 ```
+
+### GET /api/v1/monitors/{monitor}/history
+
+Get historical monitoring data for a specific monitor to create uptime graphs and analyze trends.
+
+**Path Parameters:**
+
+| Parameter | Type   | Description                | Example    |
+| --------- | ------ | -------------------------- | ---------- |
+| `monitor` | string | Monitor name (URL encoded) | `My%20API` |
+
+**Query Parameters:**
+
+| Parameter | Type   | Description                | Example      |
+| --------- | ------ | -------------------------- | ------------ |
+| `since`   | string | Start time (epoch seconds) | `1757849600` |
+| `until`   | string | End time (epoch seconds)   | `1757849700` |
+| `limit`   | int    | Maximum results to return  | `1000`       |
+
+**Usage:**
+
+```bash
+# Get last 30 days of data for a monitor
+curl "http://localhost:8080/api/v1/monitors/My%20API/history?since=1757849600&limit=1000"
+
+# Get specific time range
+curl "http://localhost:8080/api/v1/monitors/Payment%20Service/history?since=1757849600&until=1757850000"
+```
+
+**Response:**
+
+```json
+{
+  "data": {
+    "monitor": "My API",
+    "results": [
+      {
+        "project": "Production APIs",
+        "name": "My API",
+        "url": "https://api.example.com/health",
+        "ok": true,
+        "status": 200,
+        "latency": "150ms",
+        "checked_at": "1757851919"
+      }
+    ],
+    "count": 1,
+    "filter": {
+      "monitor": "My API",
+      "since": "1757851919",
+      "limit": 1000
+    }
+  },
+  "status_code": 1,
+  "status_message": "Monitor history retrieved successfully"
+}
+```
+
+**Use Cases:**
+
+- Creating uptime status graphs (like Atlassian Status)
+- Analyzing performance trends over time
+- Generating historical reports
+- Building custom dashboards
 
 ## 🚨 Alert Conditions Reference
 
@@ -601,7 +665,7 @@ global_alerts:
   "current_status": 500,
   "current_latency": "5.2s",
   "url": "https://api.company.com/users/health",
-  "timestamp": "2024-01-01T10:30:00Z",
+  "timestamp": "1757851919",
   "message": "Monitor 'User Service Health' is failing: status != 200"
 }
 ```

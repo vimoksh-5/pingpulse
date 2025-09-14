@@ -1,6 +1,8 @@
-import React from "react";
-import { MonitorStatus } from "../types/api";
+import React, { useState, useEffect } from "react";
+import { MonitorStatus, MonitorResult } from "../types/api";
 import { StatusBadge } from "./StatusBadge";
+import { UptimeGraph } from "./UptimeGraph";
+import { pingPulseAPI } from "../services/api";
 import {
   formatRelativeTime,
   formatDuration,
@@ -19,7 +21,35 @@ export const MonitorCard: React.FC<MonitorCardProps> = ({
   onClick,
   className = "",
 }) => {
+  const [historyData, setHistoryData] = useState<MonitorResult[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const latencyMs = parseDuration(monitor.latency);
+
+  // Load historical data for uptime graph
+  useEffect(() => {
+    const loadHistory = async () => {
+      setHistoryLoading(true);
+      try {
+        const since = new Date();
+        since.setDate(since.getDate() - 30); // Last 30 days
+
+        const history = await pingPulseAPI.getMonitorHistory(
+          monitor.name,
+          Math.floor(since.getTime() / 1000).toString(), // Convert to epoch seconds
+          undefined,
+          1000 // Limit to 1000 results
+        );
+        setHistoryData(history);
+      } catch (error) {
+        console.error("Failed to load monitor history:", error);
+        setHistoryData([]);
+      } finally {
+        setHistoryLoading(false);
+      }
+    };
+
+    loadHistory();
+  }, [monitor.name]);
 
   const getStatusCodeClass = (statusCode: number) => {
     if (statusCode >= 200 && statusCode < 300) return styles.statusSuccess;
@@ -50,7 +80,9 @@ export const MonitorCard: React.FC<MonitorCardProps> = ({
         <div className={styles.main}>
           <div className={styles.header}>
             <h3 className={styles.title}>{monitor.name}</h3>
-            <StatusBadge status={monitor.status} size="sm" />
+            <div className={styles.headerActions}>
+              <StatusBadge status={monitor.status} size="sm" />
+            </div>
           </div>
 
           <p className={styles.info}>
@@ -101,6 +133,16 @@ export const MonitorCard: React.FC<MonitorCardProps> = ({
                 {formatRelativeTime(monitor.lastCheck)}
               </p>
             </div>
+          </div>
+
+          {/* Uptime Graph */}
+
+          <div className={styles.uptimeSection}>
+            {historyLoading ? (
+              <div className={styles.uptimeLoading}>Loading uptime data...</div>
+            ) : (
+              <UptimeGraph results={historyData} days={30} />
+            )}
           </div>
         </div>
       </div>

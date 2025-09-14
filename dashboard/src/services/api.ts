@@ -99,15 +99,26 @@ class PingPulseAPI {
       const key = `${result.project}:${result.name}`;
       const existing = latestByMonitor.get(key);
 
-      if (
-        !existing ||
-        new Date(result.checked_at) > new Date(existing.checked_at)
-      ) {
+      // Handle epoch timestamps (always numbers now)
+      const resultTime = result.checked_at * 1000; // Convert epoch seconds to milliseconds
+      const existingTime = existing ? existing.checked_at * 1000 : 0;
+
+      if (!existing || resultTime > existingTime) {
         latestByMonitor.set(key, result);
       }
     });
 
-    return Array.from(latestByMonitor.values());
+    // Convert to array and sort by config_order if available, otherwise preserve API order
+    const latestResults = Array.from(latestByMonitor.values());
+
+    // Sort by config_order if available (backend should already provide this order)
+    if (latestResults.some((r) => r.config_order !== undefined)) {
+      latestResults.sort(
+        (a, b) => (a.config_order || 0) - (b.config_order || 0)
+      );
+    }
+
+    return latestResults;
   }
 
   // Get results for a specific project
@@ -151,6 +162,27 @@ class PingPulseAPI {
   ): Promise<MonitorResult[]> {
     const results = await this.getResults({ status, limit });
     return results.results;
+  }
+
+  // Get historical data for a specific monitor
+  async getMonitorHistory(
+    monitor: string,
+    since?: string,
+    until?: string,
+    limit?: number
+  ): Promise<MonitorResult[]> {
+    const params = new URLSearchParams();
+
+    if (since) params.append("since", since);
+    if (until) params.append("until", until);
+    if (limit) params.append("limit", limit.toString());
+
+    const encodedMonitor = encodeURIComponent(monitor);
+    const response: AxiosResponse<StandardResponse<ResultsResponse>> =
+      await this.client.get(
+        `/api/v1/monitors/${encodedMonitor}/history?${params.toString()}`
+      );
+    return response.data.data.results;
   }
 
   // Update base URL (useful for configuration changes)

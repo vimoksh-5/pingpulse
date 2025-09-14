@@ -13,7 +13,8 @@ export interface MonitorResult {
   ok: boolean;
   status: number;
   latency: string | number; // Can be string (e.g., "1.5s") or number (nanoseconds)
-  checked_at: string;
+  checked_at: number; // Epoch timestamp in seconds
+  config_order?: number; // Order from config.yaml for consistent sorting
 }
 
 export interface QueryFilter {
@@ -94,7 +95,7 @@ export interface MonitorStatus {
   project: string;
   url: string;
   status: "healthy" | "warning" | "critical" | "unknown";
-  lastCheck: string;
+  lastCheck: number; // Epoch timestamp in seconds
   latency: string | number; // Can be string (e.g., "1.5s") or number (nanoseconds)
   uptime: number;
   statusCode: number;

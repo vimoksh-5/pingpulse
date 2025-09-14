@@ -50,6 +50,7 @@ func NewServer(sink EnhancedSink, addr string) *Server {
 	mux.HandleFunc("/api/v1/monitors", s.handleMonitors)
 	mux.HandleFunc("/api/v1/projects/", s.handleProjectMonitors)
 	mux.HandleFunc("/api/v1/statistics", s.handleStatistics)
+	mux.HandleFunc("/api/v1/monitors/", s.handleMonitorHistory)
 	
 	// Wrap with CORS middleware
 	corsHandler := s.corsMiddleware(mux)
@@ -142,19 +143,19 @@ func (s *Server) handleQueryResults(w http.ResponseWriter, r *http.Request) {
 	}
 	
 	if sinceStr := r.URL.Query().Get("since"); sinceStr != "" {
-		if since, err := time.Parse(time.RFC3339, sinceStr); err == nil {
-			filter.Since = since
+		if since, err := strconv.ParseInt(sinceStr, 10, 64); err == nil {
+			filter.Since = &since
 		} else {
-			s.response.BadRequest(w, "Invalid since parameter: must be RFC3339 format (e.g., 2024-01-01T10:00:00Z)")
+			s.response.BadRequest(w, "Invalid since parameter: must be epoch timestamp in seconds (e.g., 1757849600)")
 			return
 		}
 	}
 	
 	if untilStr := r.URL.Query().Get("until"); untilStr != "" {
-		if until, err := time.Parse(time.RFC3339, untilStr); err == nil {
-			filter.Until = until
+		if until, err := strconv.ParseInt(untilStr, 10, 64); err == nil {
+			filter.Until = &until
 		} else {
-			s.response.BadRequest(w, "Invalid until parameter: must be RFC3339 format (e.g., 2024-01-01T10:00:00Z)")
+			s.response.BadRequest(w, "Invalid until parameter: must be epoch timestamp in seconds (e.g., 1757849600)")
 			return
 		}
 	}
@@ -304,4 +305,71 @@ func (s *Server) handleStatistics(w http.ResponseWriter, r *http.Request) {
 	}
 	
 	s.response.Success(w, stats, "Statistics retrieved successfully")
+}
+
+// handleMonitorHistory returns historical data for a specific monitor
+func (s *Server) handleMonitorHistory(w http.ResponseWriter, r *http.Request) {
+	// Extract monitor name from URL path
+	path := strings.TrimPrefix(r.URL.Path, "/api/v1/monitors/")
+	pathParts := strings.Split(path, "/")
+	
+	if len(pathParts) < 2 || pathParts[1] != "history" {
+		s.response.BadRequest(w, "Invalid path. Use /api/v1/monitors/{monitor}/history")
+		return
+	}
+	
+	monitorName := pathParts[0]
+	if monitorName == "" {
+		s.response.BadRequest(w, "Monitor name is required")
+		return
+	}
+	
+	// Parse query parameters for time range
+	filter := store.QueryFilter{
+		MonitorName: monitorName,
+	}
+	
+	if sinceStr := r.URL.Query().Get("since"); sinceStr != "" {
+		if since, err := strconv.ParseInt(sinceStr, 10, 64); err == nil {
+			filter.Since = &since
+		} else {
+			s.response.BadRequest(w, "Invalid since parameter: must be epoch timestamp in seconds (e.g., 1757849600)")
+			return
+		}
+	}
+	
+	if untilStr := r.URL.Query().Get("until"); untilStr != "" {
+		if until, err := strconv.ParseInt(untilStr, 10, 64); err == nil {
+			filter.Until = &until
+		} else {
+			s.response.BadRequest(w, "Invalid until parameter: must be epoch timestamp in seconds (e.g., 1757849600)")
+			return
+		}
+	}
+	
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		if limit, err := strconv.Atoi(limitStr); err == nil && limit > 0 {
+			filter.Limit = limit
+		} else {
+			s.response.BadRequest(w, "Invalid limit parameter: must be a positive integer")
+			return
+		}
+	}
+	
+	// If no time range specified, default to last 90 days
+	if filter.Since == nil {
+		since := time.Now().AddDate(0, 0, -90).Unix()
+		filter.Since = &since
+	}
+	
+	results := s.sink.Query(filter)
+	
+	responseData := map[string]interface{}{
+		"monitor": monitorName,
+		"results": results,
+		"count":   len(results),
+		"filter":  filter,
+	}
+	
+	s.response.Success(w, responseData, "Monitor history retrieved successfully")
 }
