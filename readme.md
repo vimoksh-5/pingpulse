@@ -2,7 +2,8 @@
 
 A comprehensive monitoring solution with a Go backend and React TypeScript dashboard for tracking the health and performance of your web services with real-time alerts and beautiful visualizations.
 
-![PingPulse Dashboard](dashboard-screenshot.png)
+<img width="1428" height="942" alt="image" src="https://github.com/user-attachments/assets/85df21be-f099-4328-9eb8-2cf88ca7fc4c" />
+
 
 ## Features ✨
 
