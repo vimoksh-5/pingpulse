@@ -14,20 +14,22 @@ import (
 )
 
 type AlertManager struct {
-	config *config.Config
-	client *http.Client
+	config          *config.Config
+	client          *http.Client
+	conditionParser *ConditionParser
 }
 
 func NewAlertManager(cfg *config.Config) *AlertManager {
 	return &AlertManager{
-		config: cfg,
-		client: &http.Client{Timeout: 10 * time.Second},
+		config:          cfg,
+		client:          &http.Client{Timeout: 10 * time.Second},
+		conditionParser: NewConditionParser(),
 	}
 }
 
 func (am *AlertManager) SendAlert(result monitor.Result, alert monitor.Alert) {
 	// Check if alert condition is met
-	if !am.evaluateCondition(result, alert.Condition) {
+	if !am.conditionParser.EvaluateCondition(result, alert.Condition) {
 		return
 	}
 
@@ -44,23 +46,9 @@ func (am *AlertManager) SendAlert(result monitor.Result, alert monitor.Alert) {
 	}
 }
 
-func (am *AlertManager) evaluateCondition(result monitor.Result, condition string) bool {
-	// Simple condition evaluation
-	switch condition {
-	case "status != 200":
-		return result.Status != 200
-	case "latency > 2s":
-		return result.Latency > 2*time.Second
-	case "latency > 3s":
-		return result.Latency > 3*time.Second
-	case "latency > 5s":
-		return result.Latency > 5*time.Second
-	case "ok == false":
-		return !result.OK
-	default:
-		// For more complex conditions, you might want to use a proper expression evaluator
-		return false
-	}
+// ValidateCondition validates an alert condition syntax
+func (am *AlertManager) ValidateCondition(condition string) error {
+	return am.conditionParser.ValidateCondition(condition)
 }
 
 func (am *AlertManager) sendEmailAlert(result monitor.Result, alert monitor.Alert) {

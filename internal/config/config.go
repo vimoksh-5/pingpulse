@@ -27,9 +27,9 @@ func (d *Duration) UnmarshalYAML(value *yaml.Node) error {
 type Defaults struct {
 	Interval   Duration `yaml:"interval"`
 	Timeout    Duration `yaml:"timeout"`
-	MaxRetries int      `yaml:"maxRetries"`
+	MaxRetries int      `yaml:"max_retries"`
 	Jitter     Duration `yaml:"jitter"`
-	UserAgent  string   `yaml:"userAgent"`
+	UserAgent  string   `yaml:"user_agent"`
 }
 
 type Auth struct {
@@ -58,7 +58,7 @@ type Monitor struct {
 	URL             string            `yaml:"url"`
 	Interval        *Duration         `yaml:"interval,omitempty"`
 	Timeout         *Duration         `yaml:"timeout,omitempty"`
-	MaxRetries      *int              `yaml:"maxRetries,omitempty"`
+	MaxRetries      *int              `yaml:"max_retries,omitempty"`
 	Method          string            `yaml:"method,omitempty"`
 	Headers         map[string]string `yaml:"headers,omitempty"`
 	Body            interface{}       `yaml:"body,omitempty"`
@@ -78,7 +78,7 @@ type BodyValidation struct {
 
 type Project struct {
 	Name     string    `yaml:"name"`
-	ApiKey   string    `yaml:"apiKey"`
+	ApiKey   string    `yaml:"api_key"`
 	Monitors []Monitor `yaml:"monitors"`
 }
 
