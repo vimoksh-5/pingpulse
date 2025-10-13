@@ -25,11 +25,11 @@ jobs:
         language: [ 'go', 'javascript-typescript', 'python' ]  # 🔧 keep only what you use
     steps:
       - uses: actions/checkout@v4
-      - uses: github/codeql-action/init@v3
+      - uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
-      - uses: github/codeql-action/autobuild@v3
-      - uses: github/codeql-action/analyze@v3
+      - uses: github/codeql-action/autobuild@v4
+      - uses: github/codeql-action/analyze@v4
 
   gitleaks:
     runs-on: ubuntu-latest
@@ -39,7 +39,7 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         with:
           args: detect --redact --report-format sarif --report-path gitleaks.sarif -c .gitleaks.toml
-      - uses: github/codeql-action/upload-sarif@v3
+      - uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: gitleaks.sarif
 
@@ -64,7 +64,7 @@ jobs:
           output: trivy.sarif
           ignore-unfixed: true
           vuln-type: os,library
-      - uses: github/codeql-action/upload-sarif@v3
+      - uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: trivy.sarif
 
